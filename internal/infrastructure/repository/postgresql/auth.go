@@ -13,7 +13,6 @@ func (r *Repository) GetUserByPhone(ctx context.Context, phone string) (*domain.
 		select id,
 		       name,
 		       surname,
-		       role,
 		       patronymic,
 		       password_enc
 		from users
@@ -21,7 +20,6 @@ func (r *Repository) GetUserByPhone(ctx context.Context, phone string) (*domain.
 		&user.ID,
 		&user.Name,
 		&user.Surname,
-		&user.Role,
 		&user.Patronymic,
 		&user.PasswordEncrypted,
 	)

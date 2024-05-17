@@ -17,7 +17,6 @@ import (
 
 type UserRepository interface {
 	GetUser(ctx context.Context, id int64) (*domain.User, error)
-	GetUsersByUserRole(ctx context.Context, role int16) ([]*domain.User, error)
 	UpdateUser(ctx context.Context, user *domain.User) error
 	SetUserImage(ctx context.Context, id int64, imageID string) error
 }
@@ -46,14 +45,6 @@ func (uc *UserUseCase) GetUser(ctx context.Context, id int64) (*domain.User, err
 	}
 
 	return user, nil
-}
-
-func (uc *UserUseCase) GetUsersByRole(ctx context.Context, role int16) ([]*domain.User, error) {
-	users, err := uc.userRepo.GetUsersByUserRole(ctx, role)
-	if err != nil {
-		return nil, fmt.Errorf("getting users by role %d: %w", role, err)
-	}
-	return users, nil
 }
 
 func (uc *UserUseCase) UpdateUser(ctx context.Context, user *domain.User) error {

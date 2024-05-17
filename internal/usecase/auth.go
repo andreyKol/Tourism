@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	"Tourism/internal/domain/users"
 	"context"
 	stderrors "errors"
 	"fmt"
@@ -20,7 +19,6 @@ type AuthRepository interface {
 	CheckPhoneUnique(ctx context.Context, phone string) error
 	CheckEmailUnique(ctx context.Context, email string) error
 	CreateUser(ctx context.Context, user *domain.User) error
-	CreatePatient(ctx context.Context, patient *users.Patient) error
 	GetAuthContextByUserID(ctx context.Context, id int64) (*domain.AuthContext, error)
 }
 
@@ -43,8 +41,7 @@ func (uc *AuthUseCase) SignIn(ctx context.Context, req *domain.SignInRequest) (*
 	}
 
 	token, err := auth.GenerateJWT(auth.Claims{
-		ID:   user.ID,
-		Role: user.Role,
+		ID: user.ID,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("generating token: %w", err)
@@ -82,7 +79,6 @@ func (uc *AuthUseCase) SignUp(ctx context.Context, req *domain.SignUpRequest) er
 		Name:              req.Name,
 		Phone:             req.Phone,
 		PasswordEncrypted: req.Password,
-		Role:              domain.UserRoleUser,
 		CreatedAt:         time.Now(),
 		Surname:           req.Surname,
 		Email:             req.Email,
@@ -91,19 +87,10 @@ func (uc *AuthUseCase) SignUp(ctx context.Context, req *domain.SignUpRequest) er
 		return fmt.Errorf("encrypting password: %w", err)
 	}
 
-	patient := users.Patient{
-		User:        user,
-		Policy:      &users.Policy{},
-		MedicalCard: &users.MedicalCard{},
-	}
-
 	if err = uc.authRepo.CreateUser(ctx, &user); err != nil {
 		return fmt.Errorf("creating user: %w", err)
 	}
 
-	if err = uc.authRepo.CreatePatient(ctx, &patient); err != nil {
-		return fmt.Errorf("creating patient: %w", err)
-	}
 	return nil
 }
 

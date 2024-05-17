@@ -11,30 +11,6 @@ import (
 	"Tourism/internal/common/errors"
 )
 
-type UserRole int16
-
-const (
-	UserRoleUser UserRole = iota + 1
-	UserRoleModerator
-	UserRoleAdmin
-	UserRoleGlobalAdmin
-)
-
-func (ur UserRole) String() string {
-	switch ur {
-	case UserRoleUser:
-		return "User"
-	case UserRoleModerator:
-		return "Moderator"
-	case UserRoleAdmin:
-		return "Admin"
-	case UserRoleGlobalAdmin:
-		return "Global admin"
-	default:
-		return ""
-	}
-}
-
 var (
 	phoneRegexp = regexp.MustCompile("^[+]?[(]?[0-9]{3}[)]?[-\\s.]?[0-9]{3}[-\\s.]?[0-9]{4,6}$")
 	emailRegexp = regexp.MustCompile("[^@ \\t\\r\\n]+@[^@ \\t\\r\\n]+\\.[^@ \\t\\r\\n]+")
@@ -45,7 +21,6 @@ type User struct {
 	Name              string
 	Phone             string
 	PasswordEncrypted string
-	Role              UserRole
 	CreatedAt         time.Time
 
 	Surname    *string
@@ -63,10 +38,6 @@ func (u *User) Validate() error {
 	}
 	if utf8.RuneCountInString(u.Name) > 30 {
 		return errors.NewInvalidInputError("name too long", "name")
-	}
-
-	if u.Role.String() == "" {
-		return errors.NewInvalidInputError("unknown role", "role")
 	}
 
 	if !phoneRegexp.MatchString(u.Phone) {

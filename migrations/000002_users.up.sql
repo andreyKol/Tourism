@@ -4,7 +4,6 @@ CREATE TABLE IF NOT EXISTS users
     name         text        not null,
     phone        text        not null,
     password_enc text        not null,
-    role         int2,
     created_at   timestamptz not null,
     surname      text,
     patronymic   text,

@@ -12,7 +12,6 @@ import (
 
 type UserUseCase interface {
 	GetUser(ctx context.Context, id int64) (*domain.User, error)
-	GetUsersByRole(ctx context.Context, role int16) ([]*domain.User, error)
 	UpdateUser(ctx context.Context, user *domain.User) error
 	SetUserImage(ctx context.Context, id int64, img []byte) error
 }
@@ -52,28 +51,6 @@ func (h HttpHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	render.JSON(w, r, FromDomainUserToUser(user))
-}
-
-// @Summary      GetUsersByRole
-// @Description  Returns information about users with the specified role
-// @Tags         user
-// @Accept       json
-// @Produce      json
-// @Param		 role query int true "User Role"
-// @Success      200
-// @Failure      400  {object}  Error
-// @Failure      404  {object}  Error
-// @Failure      500  {object}  Error
-// @Router       /users/{role} [get]
-func (h HttpHandler) GetUsersByRole(w http.ResponseWriter, r *http.Request) {
-	role := httphelp.ParseParamInt64("role", r)
-	users, err := h.userUseCase.GetUsersByRole(r.Context(), int16(role))
-	if err != nil {
-		ErrorResponse(w, r, err)
-		return
-	}
-
-	render.JSON(w, r, users)
 }
 
 // @Summary      UpdateUser

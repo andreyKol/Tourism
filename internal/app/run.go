@@ -85,7 +85,6 @@ func (a *App) Run(ctx context.Context) error {
 	r.Post(`/api/v1/auth/sign-out`, handler.SignUp)
 
 	r.Get(`/api/v1/users/{userId}`, handler.GetUser)
-	r.Get(`/api/v1/users/by/{role}`, handler.GetUsersByRole)
 	r.Patch(`/api/v1/users/update/{userId}`, handler.UpdateUser)
 	r.Post(`/api/v1/users/image/{userId}`, handler.SetUserImage)
 
@@ -127,7 +126,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	err = a.httpServer.Shutdown(shutdownCtx)
 	if err != nil {
-		slog.Error("failed to shutdown the server: " + err.Error())
+		slog.Error("Failed to shutdown the server: " + err.Error())
 	}
 	db.Close()
 	slog.Info("Server has been shut down successfully")
