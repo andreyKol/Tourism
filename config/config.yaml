@@ -1,0 +1,4 @@
+http:
+  port: 8080
+  host: localhost
+databaseURL: postgres://postgres:963852741@localhost:5432/medical_chat_bot_db?sslmode=disable

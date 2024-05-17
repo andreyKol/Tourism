@@ -1,0 +1,299 @@
+basePath: /api/v1
+definitions:
+  domain.SignInRequest:
+    properties:
+      password:
+        type: string
+      phone:
+        type: string
+    type: object
+  domain.SignInResponse:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      patronymic:
+        type: string
+      surname:
+        type: string
+      token:
+        type: string
+      type:
+        type: integer
+    type: object
+  domain.SignUpRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      surname:
+        type: string
+      type:
+        type: integer
+    type: object
+  domain.SignUpResponse:
+    properties:
+      token:
+        type: string
+    type: object
+  http.Error:
+    properties:
+      message:
+        type: string
+      slug:
+        type: string
+    type: object
+  http.UpdateUserJSONRequestBody:
+    properties:
+      age:
+        type: integer
+      email:
+        type: string
+      gender:
+        type: integer
+      name:
+        type: string
+      patronymic:
+        type: string
+      phone:
+        type: string
+      surname:
+        type: string
+    type: object
+  ws.CreateRoomRequest:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API Server for Medical Chat App
+  title: Medical Chat App API
+  version: "1.0"
+paths:
+  /auth/sign-in:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Starts user session. On success returns token and sets HTTP cookie.
+        If authorization will fail, `401 Unauthorized` status code will be returned without any additional data.
+      parameters:
+      - description: Request body.
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.SignInRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.SignInResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.Error'
+      summary: SignIn
+      tags:
+      - auth
+  /auth/sign-up:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Request body.
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.SignUpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.SignUpResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.Error'
+      summary: SignUp
+      tags:
+      - auth
+  /users/{user_id}:
+    get:
+      consumes:
+      - application/json
+      description: Returns information about user.
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.Error'
+      summary: GetUser
+      tags:
+      - user
+    put:
+      consumes:
+      - application/json
+      description: Returns information about updated user.
+      parameters:
+      - description: Update User Request Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.UpdateUserJSONRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.Error'
+      summary: UpdateUser
+      tags:
+      - user
+  /ws/createRoom:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new chat room.
+      parameters:
+      - description: Request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ws.CreateRoomRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.Error'
+      summary: CreateRoom
+      tags:
+      - ws
+  /ws/getClients/{roomId}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Room ID
+        in: path
+        name: roomId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.Error'
+      summary: GetClients
+      tags:
+      - Ws
+  /ws/getRooms:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.Error'
+      summary: GetRooms
+      tags:
+      - ws
+  /ws/joinRoom/{roomId}:
+    get:
+      consumes:
+      - application/json
+      description: Joins a client to a room.
+      parameters:
+      - description: Room Id
+        in: path
+        name: roomId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.Error'
+      summary: JoinRoom
+      tags:
+      - ws
+swagger: "2.0"
