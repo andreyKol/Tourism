@@ -1,10 +1,10 @@
 package postgresql
 
 import (
-	"Tourism/internal/domain"
 	"context"
 	"fmt"
 	"strings"
+	"tourism/internal/domain"
 )
 
 func (r *Repository) GetUser(ctx context.Context, id int64) (*domain.User, error) {

@@ -5,9 +5,9 @@
 package mocks
 
 import (
-	domain "Tourism/internal/domain"
 	context "context"
 	reflect "reflect"
+	domain "tourism/internal/domain"
 
 	gomock "github.com/golang/mock/gomock"
 )

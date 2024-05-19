@@ -6,8 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-
-	"Tourism/internal/infrastructure/repository"
+	"tourism/internal/infrastructure/repository"
 )
 
 type FileSystem struct {

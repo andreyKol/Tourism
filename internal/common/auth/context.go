@@ -2,9 +2,8 @@ package auth
 
 import (
 	"context"
-
-	"Tourism/internal/common/errors"
-	"Tourism/internal/domain"
+	"tourism/internal/common/errors"
+	"tourism/internal/domain"
 )
 
 type authContextKey string

@@ -4,8 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-
-	"Tourism/internal/common/config"
+	"tourism/internal/common/config"
 )
 
 type App struct {

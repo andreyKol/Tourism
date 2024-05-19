@@ -1,13 +1,13 @@
 package http
 
 import (
-	"Tourism/internal/domain"
-	"Tourism/internal/handlers/httphelp"
 	"context"
 	"errors"
 	"github.com/go-chi/render"
 	"io"
 	"net/http"
+	"tourism/internal/domain"
+	"tourism/internal/handlers/httphelp"
 )
 
 type UserUseCase interface {

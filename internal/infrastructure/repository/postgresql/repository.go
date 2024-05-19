@@ -3,11 +3,10 @@ package postgresql
 import (
 	"errors"
 	"fmt"
+	"tourism/internal/infrastructure/repository"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-
-	"Tourism/internal/infrastructure/repository"
 )
 
 type Repository struct {

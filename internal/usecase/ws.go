@@ -1,11 +1,13 @@
 package usecase
 
 import (
-	"Tourism/internal/domain"
-	"Tourism/internal/domain/ws"
 	"context"
 	"fmt"
+	"tourism/internal/domain"
+	"tourism/internal/domain/ws"
 )
+
+//go:generate mockgen -source=ws.go -destination=./mocks/ws.go -package=mocks
 
 type WsRepository interface {
 	GetUserByID(ctx context.Context, id int64) (*domain.User, error)

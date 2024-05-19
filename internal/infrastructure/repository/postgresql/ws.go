@@ -1,9 +1,9 @@
 package postgresql
 
 import (
-	"Tourism/internal/domain"
-	"Tourism/internal/domain/ws"
 	"context"
+	"tourism/internal/domain"
+	"tourism/internal/domain/ws"
 )
 
 func (r *Repository) GetUserByID(ctx context.Context, id int64) (*domain.User, error) {

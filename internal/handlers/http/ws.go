@@ -1,13 +1,13 @@
 package http
 
 import (
-	"Tourism/internal/domain"
-	"Tourism/internal/domain/ws"
 	"context"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/gorilla/websocket"
 	"net/http"
+	"tourism/internal/domain"
+	"tourism/internal/domain/ws"
 )
 
 type WsUseCase interface {

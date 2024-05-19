@@ -5,11 +5,10 @@ import (
 	stderrors "errors"
 	"fmt"
 	"time"
-
-	"Tourism/internal/common/auth"
-	"Tourism/internal/common/errors"
-	"Tourism/internal/domain"
-	"Tourism/internal/infrastructure/repository"
+	"tourism/internal/common/auth"
+	"tourism/internal/common/errors"
+	"tourism/internal/domain"
+	"tourism/internal/infrastructure/repository"
 )
 
 //go:generate mockgen -source=auth.go -destination=./mocks/auth.go -package=mocks

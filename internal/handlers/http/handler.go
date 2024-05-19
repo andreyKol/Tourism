@@ -1,33 +1,38 @@
 package http
 
 import (
-	"Tourism/internal/domain/ws"
 	stderrors "errors"
 	"net/http"
+	"tourism/internal/common/errors"
+	"tourism/internal/domain/ws"
 
 	"github.com/go-chi/render"
-
-	"Tourism/internal/common/errors"
 )
 
 type HttpHandler struct {
-	authUseCase AuthUseCase
-	userUseCase UserUseCase
-	wsUseCase   WsUseCase
-	hub         *ws.Hub
+	authUseCase    AuthUseCase
+	userUseCase    UserUseCase
+	countryUseCase CountryUseCase
+	eventUseCase   EventUseCase
+	wsUseCase      WsUseCase
+	hub            *ws.Hub
 }
 
 func NewHandler(
 	authUseCase AuthUseCase,
 	userUseCase UserUseCase,
+	countryUseCase CountryUseCase,
+	eventUseCase EventUseCase,
 	wsUseCase WsUseCase,
 	hub *ws.Hub,
 ) *HttpHandler {
 	return &HttpHandler{
-		authUseCase: authUseCase,
-		userUseCase: userUseCase,
-		wsUseCase:   wsUseCase,
-		hub:         hub,
+		authUseCase:    authUseCase,
+		userUseCase:    userUseCase,
+		countryUseCase: countryUseCase,
+		eventUseCase:   eventUseCase,
+		wsUseCase:      wsUseCase,
+		hub:            hub,
 	}
 }
 

@@ -1,9 +1,6 @@
 package usecase
 
 import (
-	"Tourism/internal/common/errors"
-	"Tourism/internal/domain"
-	"Tourism/internal/infrastructure/repository"
 	"context"
 	stderrors "errors"
 	"fmt"
@@ -11,6 +8,9 @@ import (
 	"github.com/google/uuid"
 	"log/slog"
 	"path/filepath"
+	"tourism/internal/common/errors"
+	"tourism/internal/domain"
+	"tourism/internal/infrastructure/repository"
 )
 
 //go:generate mockgen -source=user.go -destination=./mocks/user.go -package=mocks

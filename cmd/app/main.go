@@ -1,11 +1,11 @@
 package main
 
 import (
-	"Tourism/internal/app"
 	"context"
 	"flag"
 	"log"
 	"time"
+	"tourism/internal/app"
 )
 
 var (

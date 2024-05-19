@@ -1,13 +1,6 @@
 package app
 
 import (
-	"Tourism/internal/common/config"
-	"Tourism/internal/common/swagger"
-	"Tourism/internal/domain/ws"
-	"Tourism/internal/handlers/http"
-	"Tourism/internal/infrastructure/filesystem"
-	"Tourism/internal/infrastructure/repository/postgresql"
-	"Tourism/internal/usecase"
 	"context"
 	"errors"
 	"fmt"
@@ -24,6 +17,13 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	"tourism/internal/common/config"
+	"tourism/internal/common/swagger"
+	"tourism/internal/domain/ws"
+	"tourism/internal/handlers/http"
+	"tourism/internal/infrastructure/filesystem"
+	"tourism/internal/infrastructure/repository/postgresql"
+	"tourism/internal/usecase"
 )
 
 const filesDir = "files"
@@ -54,12 +54,16 @@ func (a *App) Run(ctx context.Context) error {
 	}
 	authUseCase := usecase.NewAuthUseCase(repo)
 	userUseCase := usecase.NewUserUseCase(repo, filesFS)
+	countryUseCase := usecase.NewCountryUseCase(repo)
+	eventUseCase := usecase.NewEventUseCase(repo)
 	wsUseCase := usecase.NewWsUseCase(repo)
 	hub := ws.NewHub()
 
 	handler := http.NewHandler(
 		authUseCase,
 		userUseCase,
+		countryUseCase,
+		eventUseCase,
 		wsUseCase,
 		hub,
 	)
@@ -93,6 +97,12 @@ func (a *App) Run(ctx context.Context) error {
 	r.Get("/api/v1/ws/getRooms", handler.GetRooms)
 	r.Get("/api/v1/ws/getClients/ByRoomID/{roomId}", handler.GetClientsByRoomID)
 	r.Get("/api/v1/ws/getRooms/ByClientID", handler.GetRoomsByClientID)
+
+	r.Get(`/api/v1/countries/{countryId}`, handler.GetCountry)
+	r.Get(`/api/v1/countries`, handler.GetCountries)
+
+	r.Get(`/api/v1/events/{eventId}`, handler.GetEvent)
+	r.Get(`/api/v1/events/by/{countryId}`, handler.GetEventsByCountry)
 
 	swagger.AddSwaggerRoutes(r)
 

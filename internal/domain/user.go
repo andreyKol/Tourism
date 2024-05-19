@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"regexp"
 	"time"
+	"tourism/internal/common/errors"
 	"unicode/utf8"
 
 	"golang.org/x/crypto/bcrypt"
-
-	"Tourism/internal/common/errors"
 )
 
 var (
@@ -24,9 +23,9 @@ type User struct {
 	CreatedAt         time.Time
 
 	Surname    *string
-	Patronymic *string
 	Age        *int16
 	Gender     *int16
+	Patronymic *string
 	Email      *string
 	ImageID    *string
 	LastOnline *time.Time

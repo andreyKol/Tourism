@@ -3,10 +3,9 @@ package http
 import (
 	"net/http"
 	"strings"
-
-	"Tourism/internal/common/auth"
-	"Tourism/internal/common/errors"
-	"Tourism/internal/domain"
+	"tourism/internal/common/auth"
+	"tourism/internal/common/errors"
+	"tourism/internal/domain"
 )
 
 func (h HttpHandler) AuthMiddleware(next http.Handler) func(next http.Handler) http.Handler {

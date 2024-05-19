@@ -1,11 +1,11 @@
 package http
 
 import (
-	"Tourism/internal/domain"
 	"context"
 	"github.com/go-chi/render"
 	"net/http"
 	"time"
+	"tourism/internal/domain"
 )
 
 type AuthUseCase interface {

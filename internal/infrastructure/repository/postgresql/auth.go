@@ -2,8 +2,7 @@ package postgresql
 
 import (
 	"context"
-
-	"Tourism/internal/domain"
+	"tourism/internal/domain"
 )
 
 func (r *Repository) GetUserByPhone(ctx context.Context, phone string) (*domain.User, error) {
