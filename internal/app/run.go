@@ -74,7 +74,7 @@ func (a *App) Run(ctx context.Context) error {
 	r.Use()
 	r.Use(cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3555", "http://127.0.0.1:3555", "http://localhost:3000", "http://127.0.0.1:3000"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "X-Session-Id"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
