@@ -11,6 +11,5 @@ CREATE TABLE IF NOT EXISTS users
     gender       int2,
     email        text,
     image_id     text,
-    last_online  timestamptz,
     deleted_at   timestamptz
 );

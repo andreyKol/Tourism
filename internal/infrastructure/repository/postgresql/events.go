@@ -13,7 +13,7 @@ func (r *Repository) GetEvent(ctx context.Context, id int64) (*event.Event, erro
                name,
                description,
                country_id,
-               image_url,
+               image,
                date
         FROM events
         WHERE id = $1`, id).Scan(
@@ -21,6 +21,7 @@ func (r *Repository) GetEvent(ctx context.Context, id int64) (*event.Event, erro
 		&e.Name,
 		&e.Description,
 		&e.CountryID,
+		&e.Image,
 		&e.Date,
 	)
 	if err != nil {
@@ -32,7 +33,7 @@ func (r *Repository) GetEvent(ctx context.Context, id int64) (*event.Event, erro
 
 func (r *Repository) GetEventsByCountry(ctx context.Context, countryID int64) ([]*event.EventsResponse, error) {
 	rows, err := r.db.Query(ctx, `
-        SELECT e.id, e.name, e.description, e.country_id, e.date,e.image_url 
+        SELECT e.id, e.name, e.description, e.country_id, e.image, e.date 
         FROM events e
         WHERE e.country_id = $1
     `, countryID)
@@ -44,11 +45,11 @@ func (r *Repository) GetEventsByCountry(ctx context.Context, countryID int64) ([
 	var events []*event.EventsResponse
 
 	for rows.Next() {
-		var evt event.EventsResponse
-		if err = rows.Scan(&evt.ID, &evt.Name, &evt.Description, &evt.CountryID, &evt.Date); err != nil {
+		var event event.EventsResponse
+		if err = rows.Scan(&event.ID, &event.Name, &event.Description, &event.CountryID, &event.Image, &event.Date); err != nil {
 			return nil, parseError(err, "scanning event row")
 		}
-		events = append(events, &evt)
+		events = append(events, &event)
 	}
 
 	if err = rows.Err(); err != nil {

@@ -28,7 +28,6 @@ type User struct {
 	Patronymic *string
 	Email      *string
 	ImageID    *string
-	LastOnline *time.Time
 }
 
 func (u *User) Validate() error {

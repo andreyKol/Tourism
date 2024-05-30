@@ -40,12 +40,10 @@ type User struct {
 	Id        int64     `json:"id"`
 	ImageId   *string   `json:"image_id,omitempty"`
 
-	// LastOnline A timestamp representing a date and time in RFC3339 format
-	LastOnline *Timestamp `json:"lastOnline,omitempty"`
-	Name       string     `json:"name"`
-	Patronymic *string    `json:"patronymic,omitempty"`
-	Phone      string     `json:"phone"`
-	Surname    *string    `json:"surname,omitempty"`
+	Name       string  `json:"name"`
+	Patronymic *string `json:"patronymic,omitempty"`
+	Phone      string  `json:"phone"`
+	Surname    *string `json:"surname,omitempty"`
 }
 
 // SignInJSONBody defines parameters for SignIn.

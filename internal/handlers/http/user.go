@@ -24,7 +24,6 @@ func FromDomainUserToUser(user *domain.User) *User {
 		Gender:     user.Gender,
 		Id:         user.ID,
 		ImageId:    user.ImageID,
-		LastOnline: user.LastOnline,
 		Name:       user.Name,
 		Patronymic: user.Patronymic,
 		Phone:      user.Phone,

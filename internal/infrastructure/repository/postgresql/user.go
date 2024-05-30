@@ -20,8 +20,7 @@ func (r *Repository) GetUser(ctx context.Context, id int64) (*domain.User, error
 		       image_id,
 		       phone,
 		       email,
-		       created_at,
-		       last_online
+		       created_at
 		from users
 		where id = $1`, id).Scan(
 		&u.ID,
@@ -34,7 +33,6 @@ func (r *Repository) GetUser(ctx context.Context, id int64) (*domain.User, error
 		&u.Phone,
 		&u.Email,
 		&u.CreatedAt,
-		&u.LastOnline,
 	)
 	if err != nil {
 		return nil, parseError(err, "selecting user")
@@ -133,8 +131,8 @@ func (r *Repository) CheckEmailUnique(ctx context.Context, email string) error {
 
 func (r *Repository) CreateUser(ctx context.Context, user *domain.User) error {
 	_, err := r.db.Exec(ctx, `
-		INSERT INTO users(name, surname, patronymic, age, gender, image_id, phone, email, last_online, created_at, password_enc)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+		INSERT INTO users(name, surname, patronymic, age, gender, image_id, phone, email, created_at, password_enc)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
 		user.Name,
 		user.Surname,
 		user.Patronymic,
@@ -143,7 +141,6 @@ func (r *Repository) CreateUser(ctx context.Context, user *domain.User) error {
 		user.ImageID,
 		user.Phone,
 		user.Email,
-		user.LastOnline,
 		user.CreatedAt,
 		user.PasswordEncrypted,
 	)

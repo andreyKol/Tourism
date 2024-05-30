@@ -11,12 +11,14 @@ func (r *Repository) GetCountry(ctx context.Context, id int64) (*country.Country
 	err := r.db.QueryRow(ctx, `
 		select id,
 		       name,
-		       description
+		       description,
+			   image
 		from countries
 		where id = $1`, id).Scan(
 		&c.ID,
 		&c.Name,
 		&c.Description,
+		&c.Image,
 	)
 	if err != nil {
 		return nil, parseError(err, "selecting country")
@@ -27,7 +29,7 @@ func (r *Repository) GetCountry(ctx context.Context, id int64) (*country.Country
 
 func (r *Repository) GetCountries(ctx context.Context) ([]*country.CountriesResponse, error) {
 	rows, err := r.db.Query(ctx, `
-        SELECT c.id, c.name, c.description
+        SELECT c.id, c.name, c.description, c.image
         FROM countries c
     `)
 	if err != nil {
@@ -39,7 +41,7 @@ func (r *Repository) GetCountries(ctx context.Context) ([]*country.CountriesResp
 
 	for rows.Next() {
 		var country country.CountriesResponse
-		if err = rows.Scan(&country.ID, &country.Name, &country.Description); err != nil {
+		if err = rows.Scan(&country.ID, &country.Name, &country.Description, &country.Image); err != nil {
 			return nil, parseError(err, "scanning country row")
 		}
 		countries = append(countries, &country)
