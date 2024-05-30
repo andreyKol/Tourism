@@ -9,10 +9,12 @@ import (
 )
 
 type config struct {
-	Http struct {
-		Port int16 `yaml:"port"`
-	} `yaml:"http"`
+	Http        Http   `yaml:"http"`
 	DatabaseURL string `yaml:"databaseURL"`
+}
+
+type Http struct {
+	Port int16 `yaml:"port"`
 }
 
 var (
