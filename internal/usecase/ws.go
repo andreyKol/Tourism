@@ -3,45 +3,44 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"tourism/internal/domain"
 	"tourism/internal/domain/ws"
 )
 
-//go:generate mockgen -source=ws.go -destination=./mocks/ws.go -package=mocks
-
 type WsRepository interface {
-	GetUserByID(ctx context.Context, id int64) (*domain.User, error)
-	GetUserByEmail(ctx context.Context, email string) (*domain.User, error)
 	CreateRoom(ctx context.Context, room *ws.Room) error
+	GetRoomByID(ctx context.Context, roomID string) (*ws.RoomResponse, error)
+	GetRooms(ctx context.Context) ([]*ws.RoomResponse, error)
 	AddClient(ctx context.Context, client *ws.Client) error
+	IsClientInRoom(ctx context.Context, roomID, clientID string) (bool, error)
 	GetClientsByRoomID(ctx context.Context, roomID string) ([]*ws.ClientResponse, error)
 	GetRoomsByClientID(ctx context.Context, clientID string) ([]*ws.RoomResponse, error)
 }
 
 type WsUseCase struct {
 	wsRepo WsRepository
+	hub    *ws.Hub
 }
 
-func NewWsUseCase(wsRepo WsRepository) *WsUseCase {
+func NewWsUseCase(wsRepo WsRepository, hub *ws.Hub) *WsUseCase {
 	return &WsUseCase{
 		wsRepo: wsRepo,
+		hub:    hub,
 	}
 }
 
-func (uc *WsUseCase) GetUserByID(ctx context.Context, id int64) (*domain.User, error) {
-	user, err := uc.wsRepo.GetUserByID(ctx, id)
+func (uc *WsUseCase) SyncRooms(ctx context.Context) error {
+	rooms, err := uc.wsRepo.GetRooms(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return user, nil
-}
 
-func (uc *WsUseCase) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
-	user, err := uc.wsRepo.GetUserByEmail(ctx, email)
-	if err != nil {
-		return nil, err
+	for _, room := range rooms {
+		uc.hub.Rooms[room.ID] = &ws.Room{
+			ID:      room.ID,
+			Clients: make(map[string]*ws.Client),
+		}
 	}
-	return user, nil
+	return nil
 }
 
 func (uc *WsUseCase) CreateRoom(ctx context.Context, req *ws.CreateRoomRequest) error {
@@ -58,15 +57,41 @@ func (uc *WsUseCase) CreateRoom(ctx context.Context, req *ws.CreateRoomRequest) 
 	return nil
 }
 
+func (uc *WsUseCase) GetRoomByID(ctx context.Context, roomID string) (*ws.RoomResponse, error) {
+	room, err := uc.wsRepo.GetRoomByID(ctx, roomID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get rooms: %w", err)
+	}
+
+	return room, nil
+}
+
+func (uc *WsUseCase) GetRooms(ctx context.Context) ([]*ws.RoomResponse, error) {
+	rooms, err := uc.wsRepo.GetRooms(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get rooms: %w", err)
+	}
+
+	return rooms, nil
+}
+
 func (uc *WsUseCase) AddClient(ctx context.Context, roomId string, client *ws.Client) error {
 	client.RoomID = roomId
-
 	err := uc.wsRepo.AddClient(ctx, client)
 	if err != nil {
 		return fmt.Errorf("failed to add client to the database: %w", err)
 	}
 
 	return nil
+}
+
+func (uc *WsUseCase) IsClientInRoom(ctx context.Context, roomID, clientID string) (bool, error) {
+	isInRoom, err := uc.wsRepo.IsClientInRoom(ctx, roomID, clientID)
+	if err != nil {
+		return false, fmt.Errorf("failed to check if client is in room: %w", err)
+	}
+
+	return isInRoom, nil
 }
 
 func (uc *WsUseCase) GetClientsByRoomID(ctx context.Context, roomId string) ([]*ws.ClientResponse, error) {

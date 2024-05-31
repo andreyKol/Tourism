@@ -2,53 +2,11 @@ package postgresql
 
 import (
 	"context"
-	"tourism/internal/domain"
+	"database/sql"
+	"errors"
+	"fmt"
 	"tourism/internal/domain/ws"
 )
-
-func (r *Repository) GetUserByID(ctx context.Context, id int64) (*domain.User, error) {
-	var user domain.User
-
-	err := r.db.QueryRow(ctx, `
-		select id,
-		       name,
-		       surname,
-		       patronymic
-		from users
-		where id = $1`, id).Scan(
-		&user.ID,
-		&user.Name,
-		&user.Surname,
-		&user.Patronymic,
-	)
-	if err != nil {
-		return nil, parseError(err, "selecting user")
-	}
-
-	return &user, nil
-}
-
-func (r *Repository) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
-	var user domain.User
-
-	err := r.db.QueryRow(ctx, `
-		select id,
-		       name,
-		       surname,
-		       patronymic
-		from users
-		where email = $1`, email).Scan(
-		&user.ID,
-		&user.Name,
-		&user.Surname,
-		&user.Patronymic,
-	)
-	if err != nil {
-		return nil, parseError(err, "selecting user")
-	}
-
-	return &user, nil
-}
 
 func (r *Repository) CreateRoom(ctx context.Context, room *ws.Room) error {
 	_, err := r.db.Exec(ctx, `
@@ -63,23 +21,53 @@ func (r *Repository) CreateRoom(ctx context.Context, room *ws.Room) error {
 	return nil
 }
 
-func (r *Repository) AddClient(ctx context.Context, client *ws.Client) error {
-	tx, err := r.db.Begin(ctx)
-	if err != nil {
-		return parseError(err, "starting transaction")
-	}
-	defer func() {
-		if err != nil {
-			_ = tx.Rollback(ctx)
-			return
-		}
-		err = tx.Commit(ctx)
-		if err != nil {
-			err = parseError(err, "committing transaction")
-		}
-	}()
+func (r *Repository) GetRoomByID(ctx context.Context, roomID string) (*ws.RoomResponse, error) {
+	row := r.db.QueryRow(ctx, `
+        SELECT id
+        FROM rooms
+        WHERE id = $1
+    `, roomID)
 
-	_, err = tx.Exec(ctx, `
+	var room ws.RoomResponse
+	if err := row.Scan(&room.ID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("room not found")
+		}
+		return nil, parseError(err, "scanning room row")
+	}
+
+	return &room, nil
+}
+
+func (r *Repository) GetRooms(ctx context.Context) ([]*ws.RoomResponse, error) {
+	rows, err := r.db.Query(ctx, `
+        SELECT id
+        FROM rooms
+    `)
+	if err != nil {
+		return nil, parseError(err, "selecting rooms")
+	}
+	defer rows.Close()
+
+	var rooms []*ws.RoomResponse
+
+	for rows.Next() {
+		var room ws.RoomResponse
+		if err = rows.Scan(&room.ID); err != nil {
+			return nil, parseError(err, "scanning room row")
+		}
+		rooms = append(rooms, &room)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, parseError(err, "iterating over room rows")
+	}
+
+	return rooms, nil
+}
+
+func (r *Repository) AddClient(ctx context.Context, client *ws.Client) error {
+	_, err := r.db.Exec(ctx, `
 		INSERT INTO clients (client_id, room_id)
 		VALUES ($1, $2)`,
 		client.ID, client.RoomID,
@@ -88,23 +76,30 @@ func (r *Repository) AddClient(ctx context.Context, client *ws.Client) error {
 		return parseError(err, "inserting client")
 	}
 
-	_, err = tx.Exec(ctx, `
-		INSERT INTO room_clients (room_id, client_id)
-		VALUES ($1, $2)`,
-		client.RoomID, client.ID,
-	)
-	if err != nil {
-		return parseError(err, "inserting room_client")
+	return nil
+}
+
+func (r *Repository) IsClientInRoom(ctx context.Context, roomID, clientID string) (bool, error) {
+	row := r.db.QueryRow(ctx, `
+        SELECT EXISTS (
+            SELECT 1
+            FROM clients
+            WHERE room_id = $1 AND client_id = $2
+        )`, roomID, clientID)
+
+	var exists bool
+	if err := row.Scan(&exists); err != nil {
+		return false, parseError(err, "checking if client is in room")
 	}
 
-	return nil
+	return exists, nil
 }
 
 func (r *Repository) GetClientsByRoomID(ctx context.Context, roomID string) ([]*ws.ClientResponse, error) {
 	rows, err := r.db.Query(ctx, `
-        SELECT c.id
-        FROM clients c
-        WHERE c.room_id = $1
+        SELECT client_id
+        FROM clients
+        WHERE room_id = $1
     `, roomID)
 	if err != nil {
 		return nil, parseError(err, "selecting clients by room ID")
@@ -130,10 +125,9 @@ func (r *Repository) GetClientsByRoomID(ctx context.Context, roomID string) ([]*
 
 func (r *Repository) GetRoomsByClientID(ctx context.Context, clientID string) ([]*ws.RoomResponse, error) {
 	rows, err := r.db.Query(ctx, `
-        SELECT r.id
-        FROM rooms r
-        INNER JOIN room_clients rc ON r.id = rc.room_id
-        WHERE rc.client_id = $1
+        SELECT room_id
+        FROM clients
+        WHERE client_id = $1
     `, clientID)
 	if err != nil {
 		return nil, parseError(err, "selecting rooms by client ID")

@@ -47,7 +47,7 @@ func (a *App) Run(ctx context.Context) error {
 	}
 
 	repo := postgresql.NewRepository(db)
-
+	hub := ws.NewHub()
 	filesFS, err := filesystem.New(filesDir)
 	if err != nil {
 		return fmt.Errorf("creating images fs: %w", err)
@@ -56,8 +56,8 @@ func (a *App) Run(ctx context.Context) error {
 	userUseCase := usecase.NewUserUseCase(repo, filesFS)
 	countryUseCase := usecase.NewCountryUseCase(repo)
 	eventUseCase := usecase.NewEventUseCase(repo)
-	wsUseCase := usecase.NewWsUseCase(repo)
-	hub := ws.NewHub()
+	wsUseCase := usecase.NewWsUseCase(repo, hub)
+	msgUseCase := usecase.NewMsgUseCase(repo, hub)
 
 	handler := http.NewHandler(
 		authUseCase,
@@ -65,6 +65,7 @@ func (a *App) Run(ctx context.Context) error {
 		countryUseCase,
 		eventUseCase,
 		wsUseCase,
+		msgUseCase,
 		hub,
 	)
 	go hub.Run()
@@ -103,6 +104,9 @@ func (a *App) Run(ctx context.Context) error {
 
 	r.Get(`/api/v1/events/{eventId}`, handler.GetEvent)
 	r.Get(`/api/v1/events/by/{countryId}`, handler.GetEventsByCountry)
+
+	r.Get("/api/v1/ws/getMessages/ByRoomID/{roomId}", handler.GetMessagesByRoomID)
+	r.Get("/api/v1/ws/getMessages/ByClientID", handler.GetMessagesByClientID)
 
 	swagger.AddSwaggerRoutes(r)
 

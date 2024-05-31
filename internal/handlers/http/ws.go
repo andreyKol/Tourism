@@ -4,19 +4,28 @@ import (
 	"context"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"net/http"
-	"tourism/internal/domain"
 	"tourism/internal/domain/ws"
 )
 
 type WsUseCase interface {
-	GetUserByID(ctx context.Context, id int64) (*domain.User, error)
-	GetUserByEmail(ctx context.Context, email string) (*domain.User, error)
 	CreateRoom(ctx context.Context, req *ws.CreateRoomRequest) error
+	SyncRooms(ctx context.Context) error
+	GetRoomByID(ctx context.Context, roomID string) (*ws.RoomResponse, error)
+	GetRooms(ctx context.Context) ([]*ws.RoomResponse, error)
 	AddClient(ctx context.Context, roomId string, client *ws.Client) error
+	IsClientInRoom(ctx context.Context, roomID, clientID string) (bool, error)
 	GetClientsByRoomID(ctx context.Context, roomId string) ([]*ws.ClientResponse, error)
 	GetRoomsByClientID(ctx context.Context, clientID string) ([]*ws.RoomResponse, error)
+}
+
+type MsgUseCase interface {
+	WriteMessage(client *ws.Client)
+	ReadMessage(ctx context.Context, client *ws.Client)
+	GetMessagesByRoomID(ctx context.Context, roomID string) ([]*ws.MessageResponse, error)
+	GetMessagesByClientID(ctx context.Context, clientID string) ([]*ws.MessageResponse, error)
 }
 
 // @Summary      CreateRoom
@@ -72,7 +81,8 @@ var upgrader = websocket.Upgrader{
 func (h HttpHandler) JoinRoom(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		ErrorResponse(w, r, err)
+		conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
+		conn.Close()
 		return
 	}
 
@@ -86,22 +96,44 @@ func (h HttpHandler) JoinRoom(w http.ResponseWriter, r *http.Request) {
 		RoomID:  roomId,
 	}
 	m := &ws.Message{
+		ID:       int64(uuid.New().ID()),
 		Content:  "A new client has joined the room",
 		RoomID:   roomId,
 		ClientID: clientId,
 	}
 
-	err = h.wsUseCase.AddClient(r.Context(), roomId, cl)
+	room, err := h.wsUseCase.GetRoomByID(r.Context(), roomId)
 	if err != nil {
-		ErrorResponse(w, r, err)
+		conn.WriteMessage(websocket.TextMessage, []byte("Error getting room: "+err.Error()))
+		conn.Close()
 		return
 	}
 
+	if room == nil {
+		conn.WriteMessage(websocket.TextMessage, []byte("Room not found"))
+		conn.Close()
+		return
+	}
+
+	isInRoom, err := h.wsUseCase.IsClientInRoom(r.Context(), roomId, clientId)
+	if err != nil {
+		conn.WriteMessage(websocket.TextMessage, []byte("Error checking if client is in room: "+err.Error()))
+		conn.Close()
+		return
+	}
+	if !isInRoom {
+		err = h.wsUseCase.AddClient(r.Context(), roomId, cl)
+		if err != nil {
+			conn.WriteMessage(websocket.TextMessage, []byte("Error joining room: "+err.Error()))
+			conn.Close()
+			return
+		}
+	}
 	h.hub.Register <- cl
 	h.hub.Broadcast <- m
 
-	go cl.WriteMessage()
-	cl.ReadMessage(h.hub)
+	go h.msgUseCase.WriteMessage(cl)
+	h.msgUseCase.ReadMessage(r.Context(), cl)
 }
 
 // @Summary      GetRooms
@@ -113,12 +145,10 @@ func (h HttpHandler) JoinRoom(w http.ResponseWriter, r *http.Request) {
 // @Failure      500  {object}  Error
 // @Router       /ws/getRooms [get]
 func (h HttpHandler) GetRooms(w http.ResponseWriter, r *http.Request) {
-	rooms := make([]ws.RoomResponse, 0)
-
-	for _, r := range h.hub.Rooms {
-		rooms = append(rooms, ws.RoomResponse{
-			ID: r.ID,
-		})
+	rooms, err := h.wsUseCase.GetRooms(r.Context())
+	if err != nil {
+		ErrorResponse(w, r, err)
+		return
 	}
 
 	render.Status(r, http.StatusOK)
@@ -166,4 +196,46 @@ func (h HttpHandler) GetRoomsByClientID(w http.ResponseWriter, r *http.Request) 
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, rooms)
+}
+
+// @Summary      GetMessagesByRoomID
+// @Description  Retrieves messages by room ID.
+// @Tags         ws
+// @Accept       json
+// @Produce      json
+// @Param        roomId path string true "Room ID"
+// @Success      200  {object}  []ws.MessageResponse
+// @Failure      404  {object}  Error
+// @Failure      500  {object}  Error
+// @Router       /ws/getMessagesByRoomID/{roomId} [get]
+func (h HttpHandler) GetMessagesByRoomID(w http.ResponseWriter, r *http.Request) {
+	roomId := chi.URLParam(r, "roomId")
+	messages, err := h.msgUseCase.GetMessagesByRoomID(r.Context(), roomId)
+	if err != nil {
+		ErrorResponse(w, r, err)
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, messages)
+}
+
+// @Summary      GetMessagesByClientID
+// @Description  Retrieves messages by client ID.
+// @Tags         ws
+// @Accept       json
+// @Produce      json
+// @Param        clientId query string true "Client ID"
+// @Success      200  {object}  []ws.MessageResponse
+// @Failure      404  {object}
+func (h HttpHandler) GetMessagesByClientID(w http.ResponseWriter, r *http.Request) {
+	clientId := r.URL.Query().Get("clientId")
+	messages, err := h.msgUseCase.GetMessagesByClientID(r.Context(), clientId)
+	if err != nil {
+		ErrorResponse(w, r, err)
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, messages)
 }

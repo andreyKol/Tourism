@@ -15,6 +15,7 @@ type HttpHandler struct {
 	countryUseCase CountryUseCase
 	eventUseCase   EventUseCase
 	wsUseCase      WsUseCase
+	msgUseCase     MsgUseCase
 	hub            *ws.Hub
 }
 
@@ -24,6 +25,7 @@ func NewHandler(
 	countryUseCase CountryUseCase,
 	eventUseCase EventUseCase,
 	wsUseCase WsUseCase,
+	msgUseCase MsgUseCase,
 	hub *ws.Hub,
 ) *HttpHandler {
 	return &HttpHandler{
@@ -32,6 +34,7 @@ func NewHandler(
 		countryUseCase: countryUseCase,
 		eventUseCase:   eventUseCase,
 		wsUseCase:      wsUseCase,
+		msgUseCase:     msgUseCase,
 		hub:            hub,
 	}
 }
